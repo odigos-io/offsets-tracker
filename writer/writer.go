@@ -4,16 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/keyval-dev/offsets-tracker/schema"
 	"github.com/keyval-dev/offsets-tracker/target"
 	"io/fs"
 	"io/ioutil"
 	"strings"
 )
 
-const fileName = "/tmp/offset_results.json"
-
 func WriteResults(results ...*target.Result) error {
-	var offsets TrackedOffsets
+	var offsets schema.TrackedOffsets
 	for _, r := range results {
 		offsets.Data = append(offsets.Data, convertResult(r))
 	}
@@ -24,24 +23,24 @@ func WriteResults(results ...*target.Result) error {
 	}
 
 	var prettyJson bytes.Buffer
-	err = json.Indent(&prettyJson, jsonData, "", "\t")
+	err = json.Indent(&prettyJson, jsonData, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	return ioutil.WriteFile(fileName, prettyJson.Bytes(), fs.ModePerm)
+	return ioutil.WriteFile(schema.FileName, prettyJson.Bytes(), fs.ModePerm)
 }
 
-func convertResult(r *target.Result) TrackedLibrary {
-	tl := TrackedLibrary{
+func convertResult(r *target.Result) schema.TrackedLibrary {
+	tl := schema.TrackedLibrary{
 		Name: r.ModuleName,
 	}
 
-	offsetsMap := make(map[string][]VersionedOffset)
+	offsetsMap := make(map[string][]schema.VersionedOffset)
 	for _, vr := range r.ResultsByVersion {
 		for _, od := range vr.OffsetData.DataMembers {
 			key := fmt.Sprintf("%s,%s", od.StructName, od.Field)
-			offsetsMap[key] = append(offsetsMap[key], VersionedOffset{
+			offsetsMap[key] = append(offsetsMap[key], schema.VersionedOffset{
 				Offset:  od.Offset,
 				Version: vr.Version,
 			})
@@ -50,7 +49,7 @@ func convertResult(r *target.Result) TrackedLibrary {
 
 	for key, offsets := range offsetsMap {
 		parts := strings.Split(key, ",")
-		tl.DataMembers = append(tl.DataMembers, TrackedDataMember{
+		tl.DataMembers = append(tl.DataMembers, schema.TrackedDataMember{
 			Struct:  parts[0],
 			Field:   parts[1],
 			Offsets: offsets,

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-version"
 	"github.com/keyval-dev/offsets-tracker/binary"
+	"github.com/keyval-dev/offsets-tracker/cache"
 	"github.com/keyval-dev/offsets-tracker/downloader"
 	"github.com/keyval-dev/offsets-tracker/versions"
 	"os"
@@ -35,6 +36,7 @@ type targetData struct {
 	VersionsStrategy    VersionsStrategy
 	BinaryFetchStrategy BinaryFetchStrategy
 	versionConstraint   *version.Constraints
+	Cache               *cache.Cache
 }
 
 func New(name string) *targetData {
@@ -42,6 +44,7 @@ func New(name string) *targetData {
 		name:                name,
 		VersionsStrategy:    GoListVersionsStrategy,
 		BinaryFetchStrategy: WrapAsGoAppBinaryFetchStrategy,
+		Cache:               cache.NewCache(),
 	}
 }
 
@@ -71,6 +74,20 @@ func (t *targetData) FindOffsets(dm []*binary.DataMember) (*Result, error) {
 		ModuleName: t.name,
 	}
 	for _, v := range vers {
+		if t.Cache != nil {
+			cachedResults, found := t.Cache.IsAllInCache(t.name, v, dm)
+			if found {
+				fmt.Printf("%s: Found all requested offsets in cache for version %s\n", t.name, v)
+				result.ResultsByVersion = append(result.ResultsByVersion, &VersionedResult{
+					Version: v,
+					OffsetData: &binary.Result{
+						DataMembers: cachedResults,
+					},
+				})
+				continue
+			}
+		}
+
 		fmt.Printf("%s: Downloading version %s\n", t.name, v)
 		exePath, dir, err := t.downloadBinary(t.name, v)
 		if err != nil {
