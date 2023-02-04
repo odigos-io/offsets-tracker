@@ -37,7 +37,7 @@ func DownloadBinary(modName string, version string) (string, string, error) {
 		return "", "", err
 	}
 
-	err, _, _ = utils.RunCommand("go mod tidy", dir)
+	err, _, _ = utils.RunCommand("go mod tidy -compat=1.17", dir)
 	if err != nil {
 		return "", "", err
 	}

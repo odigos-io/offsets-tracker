@@ -33,6 +33,14 @@ func main() {
 				Field:      "URL",
 			},
 			{
+				StructName: "net/http.Request",
+				Field:      "RemoteAddr",
+			},
+			{
+				StructName: "net/http.Request",
+				Field:      "ctx",
+			},
+			{
 				StructName: "net/url.URL",
 				Field:      "Path",
 			},
@@ -49,8 +57,24 @@ func main() {
 				Field:      "method",
 			},
 			{
+				StructName: "google.golang.org/grpc/internal/transport.Stream",
+				Field:      "id",
+			},
+			{
+				StructName: "google.golang.org/grpc/internal/transport.Stream",
+				Field:      "ctx",
+			},
+			{
 				StructName: "google.golang.org/grpc.ClientConn",
 				Field:      "target",
+			},
+			{
+				StructName: "golang.org/x/net/http2.MetaHeadersFrame",
+				Field:      "Fields",
+			},
+			{
+				StructName: "golang.org/x/net/http2.FrameHeader",
+				Field:      "StreamID",
 			},
 		})
 
